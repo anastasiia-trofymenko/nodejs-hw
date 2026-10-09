@@ -15,13 +15,16 @@ export const getAllNotes = async (req, res) => {
 
   // Пошук за заголовком або вмістом
   if (search) {
+    const searchText = search.trim();
     notesQuery.where({
       $or: [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
+        { title: { $regex: searchText, $options: 'i' } },
+        { content: { $regex: searchText, $options: 'i' } },
       ],
     });
   }
+  console.log('Query params:', req.query);
+  console.log('MongoDB filter:', notesQuery.getFilter());
 
   const [totalNotes, notes] = await Promise.all([
     notesQuery.clone().countDocuments(),
