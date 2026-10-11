@@ -17,7 +17,6 @@ const noteSchema = new Schema(
       type: String,
       enum: TAGS,
       default: 'Todo',
-      index: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
@@ -30,5 +29,8 @@ const noteSchema = new Schema(
     versionKey: false,
   },
 );
+
+// Складений індекс для tag та userId
+noteSchema.index({ tag: 1, userId: 1 });
 
 export const Note = model('Note', noteSchema);
