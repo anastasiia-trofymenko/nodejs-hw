@@ -61,3 +61,35 @@ export const loginUser = async (req, res) => {
 
   res.status(200).json(user);
 };
+
+export const refreshUserSession = async (req, res) => {
+  const { sessionId, refreshToken } = req.cookies;
+
+  // Знаходимо поточну сесію
+  const session = await Session.findOne({
+    _id: sessionId,
+    refreshToken,
+  });
+
+  if (!session) {
+    throw createHttpError(401, 'Session not found');
+  }
+
+  // Перевіряємо термін дії refresh-токена
+  if (session.refreshTokenValidUntil < new Date()) {
+    throw createHttpError(401, 'Session token expired');
+  }
+
+  // Видаляємо стару сесію
+  await Session.deleteOne({ _id: session._id });
+
+  // Створюємо нову сесію
+  const newSession = await createSession(session.userId);
+
+  // Встановлюємо нові cookies
+  setSessionCookies(res, newSession);
+
+  res.status(200).json({
+    message: 'Session refreshed',
+  });
+};
