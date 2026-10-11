@@ -64,9 +64,12 @@ export const loginUser = async (req, res) => {
 };
 
 export const refreshUserSession = async (req, res) => {
-  const { sessionId, refreshToken } = req.cookies;
+  const { sessionId, refreshToken } = req.cookies ?? {};
 
-  // Знаходимо поточну сесію
+  if (!sessionId || !isValidObjectId(sessionId) || !refreshToken) {
+    throw createHttpError(401, 'Session not found');
+  }
+
   const session = await Session.findOne({
     _id: sessionId,
     refreshToken,
@@ -76,8 +79,20 @@ export const refreshUserSession = async (req, res) => {
     throw createHttpError(401, 'Session not found');
   }
 
-  // Перевіряємо термін дії refresh-токена
-  if (session.refreshTokenValidUntil < new Date()) {
+  // Якщо refresh-токен прострочений
+  if (session.refreshTokenValidUntil <= new Date()) {
+    await Session.deleteOne({ _id: session._id });
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    };
+
+    res.clearCookie('sessionId', cookieOptions);
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
+
     throw createHttpError(401, 'Session token expired');
   }
 
