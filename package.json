@@ -20,7 +20,9 @@
   },
   "homepage": "https://github.com/anastasiia-trofymenko/nodejs-hw#readme",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "celebrate": "^16.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
