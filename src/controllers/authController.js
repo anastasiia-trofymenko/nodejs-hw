@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import createHttpError from 'http-errors';
+import { isValidObjectId } from 'mongoose';
 
 import { User } from '../models/user.js';
 import { Session } from '../models/session.js';
@@ -92,4 +93,32 @@ export const refreshUserSession = async (req, res) => {
   res.status(200).json({
     message: 'Session refreshed',
   });
+};
+
+export const logoutUser = async (req, res) => {
+  const { sessionId } = req.cookies;
+
+  if (sessionId && isValidObjectId(sessionId)) {
+    await Session.deleteOne({ _id: sessionId });
+  }
+
+  res.clearCookie('accessToken', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+  });
+
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+  });
+
+  res.clearCookie('sessionId', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+  });
+
+  res.status(204).send();
 };
